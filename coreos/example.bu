@@ -1,0 +1,34 @@
+variant: fcos
+version: 1.4.0
+passwd:
+  users:
+    - name: core
+      ssh_authorized_keys: 
+        - ssh-rsa AAAAB3N...
+    - name: bruno.pixlog
+      groups:
+        - docker
+        - wheel
+      ssh_authorized_keys:
+        - ssh-rsa AAAAB3N... 
+      password_hash: $y$j9T...
+systemd:
+  units:
+    - name: hello.service 
+      enabled: true
+      contents: |
+        [Unit]
+        Description=A hello world unit!
+        After=network-online.target
+        Wants=network-online.target
+        [Service]
+        Type=forking
+        KillMode=none
+        Restart=on-failure
+        RemainAfterExit=yes
+        ExecStartPre=podman pull quay.io/gbsalinetti/hello-server
+        ExecStart=podman run -d --name hello-server -p 8080:8080 quay.io/gbsalinetti/hello-server
+        ExecStop=podman stop -t 10 hello-server
+        ExecStopPost=podman rm hello-server
+        [Install]
+        WantedBy=multi-user.target
